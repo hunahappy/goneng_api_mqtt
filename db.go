@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	_ "github.com/lib/pq"
@@ -28,11 +29,24 @@ func NewDB(host, port, user, password, dbname string, sslmode string) (*sql.DB, 
 	return db, nil
 }
 
-func InsertSensorMessage(db *sql.DB, msg SensorMessage) error {
+func InsertSensorMessage(db *sql.DB, data map[string]interface{}) error {
 	query := `
-		INSERT INTO 센서 (토픽, 내용)
-		VALUES ($1, $2)
+		INSERT INTO 센서 (장치, 구분, 내용, 토픽)
+		VALUES ($1, $2, $3, $4)
 	`
-	_, err := db.Exec(query, msg.Topic, msg.Payload)
+
+	// 안전하게 문자열로 변환
+	device := fmt.Sprintf("%v", data["장치"])
+	category := fmt.Sprintf("%v", data["구분"])
+	topic := fmt.Sprintf("%v", data["토픽"])
+
+	contentBytes, err := json.Marshal(data["내용"])
+	if err != nil {
+		return err
+	}
+	content := string(contentBytes)
+
+	_, err = db.Exec(query, device, category, content, topic)
+	fmt.Printf("DB에 저장된 데이터: 장치=%s, 구분=%s, 토픽=%s, 내용=%s\n", device, category, topic, content)
 	return err
 }

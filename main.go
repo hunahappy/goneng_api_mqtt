@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	cfg, _ := LoadConfigMap("goneng_mqtt.conf")
+	cfg, _ := LoadConfigMap("goneng_api_mqtt.conf")
 
 	db, err := NewDB(
 		cfg["db_host"].(string),

@@ -1,0 +1,12 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build-and-deploy",
+            "type": "shell",
+            "command": "GOOS=linux GOARCH=amd64 go build -o goneng_api_mqtt && ssh mandu@192.168.0.121 'sudo systemctl stop goneng_api_mqtt' && scp goneng_api_mqtt mandu@192.168.0.121:/home/mandu/app/ && ssh mandu@192.168.0.121 'sudo systemctl restart goneng_api_mqtt'",
+            "problemMatcher": ["$go"],
+            "group": "build"
+        }
+    ]
+}

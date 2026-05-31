@@ -2,10 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -13,7 +16,9 @@ import (
 func NewMQTTClient(db *sql.DB, mqtt_broker, user, password string) mqtt.Client {
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(mqtt_broker)
-	opts.SetClientID("go-mqtt-client")
+
+	clientID := "device-" + uuid.New().String()
+	opts.SetClientID(clientID)
 	opts.SetUsername(user)
 	opts.SetPassword(password)
 	opts.SetCleanSession(false)
@@ -59,14 +64,13 @@ func handleMessage(db *sql.DB, msg mqtt.Message) {
 		lastSaveTimes[msg.Topic()] = time.Now()
 	}
 
-	// DB 저장 로직
-	record := SensorMessage{
-		Topic:      msg.Topic(),
-		Payload:    string(msg.Payload()),
-		ReceivedAt: time.Now(),
+	var data map[string]interface{}
+	if err := json.Unmarshal([]byte(msg.Payload()), &data); err != nil {
+		panic(err)
 	}
+	data["토픽"] = msg.Topic()
 
-	if err := InsertSensorMessage(db, record); err != nil {
+	if err := InsertSensorMessage(db, data); err != nil {
 		log.Printf("DB 저장 실패: %v", err)
 		return
 	}
