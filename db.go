@@ -31,7 +31,7 @@ func NewDB(host, port, user, password, dbname string, sslmode string) (*sql.DB, 
 
 func InsertSensorMessage(db *sql.DB, data map[string]interface{}) error {
 	query := `
-		INSERT INTO 센서 (장치, 구분, 내용, 토픽)
+		INSERT INTO 로그 (장치, 구분, 내용, 토픽)
 		VALUES ($1, $2, $3, $4)
 	`
 
