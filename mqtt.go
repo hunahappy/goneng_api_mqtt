@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -49,20 +48,9 @@ func NewMQTTClient(db *sql.DB, mqtt_broker, user, password string) mqtt.Client {
 	return mqtt.NewClient(opts)
 }
 
-var lastSaveTimes = make(map[string]time.Time)
-
 // func handleMessage(db *sql.DB, client mqtt.Client, msg mqtt.Message) {
 func handleMessage(db *sql.DB, msg mqtt.Message) {
 	fmt.Printf("메시지 수신 - 주제: %s, 내용: %s\n", msg.Topic(), msg.Payload())
-
-	// goneng/farm1/data~ 토픽은 1분에 한 번만 저장
-	if strings.HasPrefix(msg.Topic(), "goneng/farm1/data") {
-		lastTime, exists := lastSaveTimes[msg.Topic()]
-		if exists && time.Since(lastTime) < time.Minute {
-			return
-		}
-		lastSaveTimes[msg.Topic()] = time.Now()
-	}
 
 	var data map[string]interface{}
 	if err := json.Unmarshal([]byte(msg.Payload()), &data); err != nil {
